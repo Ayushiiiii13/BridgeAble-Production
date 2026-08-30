@@ -61,7 +61,7 @@ app.use(errorHandler);
 setupSocketHandlers(io);
 
 // Start server
-server.listen(PORT, () => {
-  console.log(`BridgeAble Backend Server running on http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`BridgeAble Backend Server running on port ${PORT}`);
   connectDB();
 });
