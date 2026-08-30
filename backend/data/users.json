@@ -1,0 +1,51 @@
+[
+  {
+    "_id": "doc_1788088935533_ecgi3j",
+    "name": "Test User",
+    "email": "test@bridgeable.com",
+    "password": "hashed_password_sample",
+    "role": "user",
+    "createdAt": "2026-08-30T11:22:15.533Z",
+    "updatedAt": "2026-08-30T11:22:15.535Z"
+  },
+  {
+    "_id": "doc_1788088950247_joqj01",
+    "name": "BridgeAble User",
+    "email": "user1788088950094@example.com",
+    "password": "$2b$10$WnBkGTWYQi42BOTlQw08vus9ZyZPIQPRt1B.Ei/nhjcbpITyDKILC",
+    "avatar": "",
+    "role": "user",
+    "accessibilityPreferences": {
+      "captionsEnabled": true,
+      "signLanguageEnabled": false,
+      "speechToTextEnabled": false,
+      "textToSpeechEnabled": false,
+      "highContrast": false,
+      "largeText": false,
+      "reduceMotion": false,
+      "captionFontSize": "medium"
+    },
+    "createdAt": "2026-08-30T11:22:30.247Z",
+    "updatedAt": "2026-08-30T11:22:30.247Z"
+  },
+  {
+    "_id": "doc_1788105816750_07knm2",
+    "name": "Ayushi Rathi",
+    "email": "ayushirathi2912@gmail.com",
+    "password": "$2b$10$Z0Y28K8TtULAyYUehTp0WebsKd/QgMcA6XVO8TtvW6KtAIZ6J59AG",
+    "avatar": "",
+    "role": "user",
+    "accessibilityPreferences": {
+      "captionsEnabled": true,
+      "signLanguageEnabled": false,
+      "speechToTextEnabled": false,
+      "textToSpeechEnabled": false,
+      "highContrast": false,
+      "largeText": false,
+      "reduceMotion": false,
+      "captionFontSize": "medium"
+    },
+    "createdAt": "2026-08-30T16:03:36.750Z",
+    "updatedAt": "2026-08-30T16:03:36.750Z"
+  }
+]

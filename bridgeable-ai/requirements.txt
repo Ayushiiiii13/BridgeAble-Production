@@ -1,0 +1,22 @@
+# ==========================================================
+# BridgeAble - AI/CV Module Requirements
+# ==========================================================
+# PHASE 1 needs only the three packages below (not commented).
+# Everything else is commented out and will be uncommented
+# in later phases (training, export, etc.) — no need to
+# install them yet.
+# ==========================================================
+
+# ---- Phase 1: Computer Vision (install these now) ----
+mediapipe==0.10.14
+opencv-python==4.9.0.80
+numpy==1.26.4
+
+# ---- Needed starting Phase 4/5 (training) ----
+# tensorflow==2.15.0
+# scikit-learn==1.4.2
+# matplotlib==3.8.4
+# seaborn==0.13.2
+
+# ---- Needed starting Phase 7 (export to web) ----
+# tensorflowjs==4.17.0

@@ -1,0 +1,3 @@
+# Placeholder directory for trained TensorFlow model files
+# Place gesture_model.h5 or gesture_model.keras here
+# The GestureService will load the model from the path specified in .env (MODEL_PATH)

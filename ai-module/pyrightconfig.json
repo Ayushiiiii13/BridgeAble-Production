@@ -1,0 +1,9 @@
+{
+  "pythonVersion": "3.12",
+  "venvPath": ".",
+  "venv": "venv",
+  "include": ["app"],
+  "typeCheckingMode": "basic",
+  "reportMissingModuleSource": "none",
+  "reportMissingImports": "none"
+}
