@@ -1,6 +1,23 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+/**
+ * Normalizes and formats the API base URL to ensure the `/api` route prefix is always present exactly once.
+ * - If VITE_API_URL is provided, trailing slashes are stripped and '/api' is appended if not already present.
+ * - In production mode, defaults to 'https://bridgeable-production.onrender.com/api'.
+ * - In development mode, defaults to 'http://localhost:5000/api'.
+ */
+export const getApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim() !== '') {
+    const cleaned = envUrl.trim().replace(/\/+$/, '');
+    return cleaned.endsWith('/api') ? cleaned : `${cleaned}/api`;
+  }
+  return import.meta.env.PROD
+    ? 'https://bridgeable-production.onrender.com/api'
+    : 'http://localhost:5000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 const AI_BASE_URL = import.meta.env.VITE_AI_API_URL || import.meta.env.VITE_AI_URL || 'http://localhost:8000';
 
 const api = axios.create({
@@ -11,8 +28,13 @@ const api = axios.create({
   timeout: 12000,
 });
 
-// Attach token to requests
+// Guard against duplicate /api prefixes and attach token to requests
 api.interceptors.request.use((config) => {
+  if (config.url && !config.url.startsWith('http://') && !config.url.startsWith('https://')) {
+    // Strip leading /api or api to prevent duplicate /api when baseURL already ends with /api
+    config.url = config.url.replace(/^\/?api(\/|$)/, '/');
+  }
+
   const token = localStorage.getItem('bridgeable_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

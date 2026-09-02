@@ -4,7 +4,21 @@ import { useAuth } from './AuthContext';
 
 const MeetingContext = createContext();
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const getSocketUrl = () => {
+  const envSocketUrl = import.meta.env.VITE_SOCKET_URL;
+  if (envSocketUrl && typeof envSocketUrl === 'string' && envSocketUrl.trim() !== '') {
+    return envSocketUrl.trim().replace(/\/+$/, '');
+  }
+  const envApiUrl = import.meta.env.VITE_API_URL;
+  if (envApiUrl && typeof envApiUrl === 'string' && envApiUrl.trim() !== '') {
+    return envApiUrl.trim().replace(/\/api\/?$/, '').replace(/\/+$/, '');
+  }
+  return import.meta.env.PROD
+    ? 'https://bridgeable-production.onrender.com'
+    : 'http://localhost:5000';
+};
+
+const SOCKET_URL = getSocketUrl();
 
 const RTC_CONFIG = {
   iceServers: [
