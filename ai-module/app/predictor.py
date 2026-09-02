@@ -25,9 +25,11 @@ try:
     from mediapipe.tasks import python
     from mediapipe.tasks.python import vision
     MEDIAPIPE_AVAILABLE = True
+    print(f"[BridgeAble AI] MediaPipe {mp.__version__} imported successfully.")
 except ImportError as e:
     MEDIAPIPE_AVAILABLE = False
-    print(f"[Predictor] MediaPipe import warning: {e}")
+    print(f"[BridgeAble AI] CRITICAL: MediaPipe import failed — {e}")
+    print("[BridgeAble AI] Ensure 'mediapipe' and 'opencv-python-headless' are in requirements.txt")
 
 # Optional TensorFlow support
 try:
@@ -36,8 +38,8 @@ try:
 except ImportError:
     TF_AVAILABLE = False
 
-
-MODEL_TASK_PATH = Path(__file__).resolve().parent.parent / "models" / "gesture_recognizer.task"
+import urllib.request
+import traceback
 
 
 class GesturePredictor:
@@ -47,25 +49,52 @@ class GesturePredictor:
         self.recognizer: Any = None
         self.custom_model: Any = None
         self.model_loaded: bool = False
+        self.model_type: str = "none"
+        self.model_path: str = ""
+        self.load_error: Optional[str] = None
 
-        self._initialize_recognizer()
-        self._load_custom_model()
+        self._initialize()
 
-    def _initialize_recognizer(self) -> None:
+    def _initialize(self) -> None:
+        """Initializes the gesture model based on resolved settings.MODEL_PATH."""
+        model_file = Path(settings.MODEL_PATH)
+        self.model_path = str(model_file)
+        print(f"[BridgeAble AI] Initializing gesture model from: {self.model_path}")
+
+        # Check if the target is a MediaPipe .task model
+        if model_file.suffix == ".task" or not model_file.suffix or "task" in model_file.name:
+            self._initialize_recognizer(model_file)
+        elif model_file.suffix in [".h5", ".keras"]:
+            self._load_custom_model(model_file)
+        else:
+            self._initialize_recognizer(model_file)
+
+    def _initialize_recognizer(self, model_file: Path) -> None:
         """Initializes the MediaPipe GestureRecognizer model asset ONCE on startup."""
         if not MEDIAPIPE_AVAILABLE:
-            print("[Predictor] MediaPipe is not installed. Recognizer unavailable.")
+            self.load_error = "MediaPipe library is not available in environment"
+            print(f"[BridgeAble AI] ERROR: {self.load_error}")
             return
 
         try:
-            if not MODEL_TASK_PATH.exists():
-                print(f"[Predictor] Model asset not found at {MODEL_TASK_PATH}, attempting download...")
-                import urllib.request
-                MODEL_TASK_PATH.parent.mkdir(parents=True, exist_ok=True)
+            # If the model file does not exist locally or is empty, attempt download
+            if not model_file.exists() or model_file.stat().st_size == 0:
+                print(f"[BridgeAble AI] Model asset not found at {model_file}. Attempting download...")
+                model_file.parent.mkdir(parents=True, exist_ok=True)
                 url = "https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task"
-                urllib.request.urlretrieve(url, str(MODEL_TASK_PATH))
+                req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (BridgeAble AI Module)"})
+                with urllib.request.urlopen(req, timeout=30) as resp, open(model_file, "wb") as out_f:
+                    out_f.write(resp.read())
+                print(f"[BridgeAble AI] Downloaded model asset to {model_file} ({model_file.stat().st_size} bytes)")
 
-            base_options = python.BaseOptions(model_asset_path=str(MODEL_TASK_PATH))
+            # Read into memory buffer for maximum Linux/cross-platform compatibility
+            with open(model_file, "rb") as f:
+                model_buffer = f.read()
+
+            if len(model_buffer) == 0:
+                raise ValueError(f"Model file at {model_file} is empty (0 bytes).")
+
+            base_options = python.BaseOptions(model_asset_buffer=model_buffer)
             options = vision.GestureRecognizerOptions(
                 base_options=base_options,
                 num_hands=2,
@@ -75,22 +104,37 @@ class GesturePredictor:
             )
             self.recognizer = vision.GestureRecognizer.create_from_options(options)
             self.model_loaded = True
-            print("[Predictor] MediaPipe GestureRecognizer loaded successfully.")
-        except Exception as exc:
-            print(f"[Predictor] Error initializing MediaPipe GestureRecognizer: {exc}")
+            self.model_type = "mediapipe_gesture_recognizer"
+            self.load_error = None
+            print(f"[BridgeAble AI] MediaPipe GestureRecognizer loaded successfully ({len(model_buffer)} bytes).")
 
-    def _load_custom_model(self) -> None:
-        """Loads custom trained Keras model if available in models directory."""
+        except Exception as exc:
+            self.load_error = f"Error initializing MediaPipe GestureRecognizer: {exc}"
+            print(f"[BridgeAble AI] ERROR: {self.load_error}")
+            traceback.print_exc()
+
+    def _load_custom_model(self, model_file: Path) -> None:
+        """Loads custom trained Keras model if available."""
         if not TF_AVAILABLE:
+            self.load_error = "TensorFlow is not installed for custom model"
+            print(f"[BridgeAble AI] WARNING: {self.load_error}")
             return
 
-        custom_path = settings.MODEL_PATH
-        if os.path.exists(custom_path):
-            try:
-                self.custom_model = tf.keras.models.load_model(custom_path)
-                print(f"[Predictor] Loaded custom model from {custom_path}")
-            except Exception as exc:
-                print(f"[Predictor] Could not load custom model from {custom_path}: {exc}")
+        if not model_file.exists():
+            self.load_error = f"Custom model file not found at {model_file}"
+            print(f"[BridgeAble AI] WARNING: {self.load_error}")
+            return
+
+        try:
+            self.custom_model = tf.keras.models.load_model(str(model_file))
+            self.model_loaded = True
+            self.model_type = "keras_custom_model"
+            self.load_error = None
+            print(f"[BridgeAble AI] Loaded custom model from {model_file}")
+        except Exception as exc:
+            self.load_error = f"Could not load custom model from {model_file}: {exc}"
+            print(f"[BridgeAble AI] ERROR: {self.load_error}")
+            traceback.print_exc()
 
     def _calculate_distance(self, p1: List[float], p2: List[float]) -> float:
         """Calculates 3D Euclidean distance between two landmark points."""

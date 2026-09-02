@@ -13,13 +13,23 @@ from app.predictor import predictor
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: MediaPipe and models already loaded once into predictor singleton
-    print("[BridgeAble AI] Service initialized and ready to receive gesture recognition frames.")
+    # Startup: Log model resolution and loading status
+    print("=" * 60)
+    print(f"[BridgeAble AI] Model Path Resolved: '{predictor.model_path}'")
+    print(f"[BridgeAble AI] Model Loaded: {predictor.model_loaded} (type: {predictor.model_type})")
+    if not predictor.model_loaded:
+        print(f"[BridgeAble AI] WARNING: Model is not loaded. Reason: {predictor.load_error}")
+    else:
+        print("[BridgeAble AI] Service initialized and ready to receive gesture recognition frames.")
+    print("=" * 60)
     yield
     # Shutdown
     if predictor.recognizer:
-        predictor.recognizer.close()
-        print("[BridgeAble AI] MediaPipe recognizer closed.")
+        try:
+            predictor.recognizer.close()
+            print("[BridgeAble AI] MediaPipe recognizer closed.")
+        except Exception as e:
+            print(f"[BridgeAble AI] Error closing recognizer: {e}")
 
 
 app = FastAPI(
@@ -56,11 +66,16 @@ async def health_check():
 
 @app.get("/")
 async def root():
-    return {
+    resp = {
         "service": "BridgeAble AI Module",
         "version": "1.0.0",
         "status": "online",
         "docs": "/docs",
         "model_loaded": predictor.model_loaded,
+        "model_type": predictor.model_type,
+        "model_path": predictor.model_path,
         "supported_signs": settings.SIGN_VOCABULARY
     }
+    if not predictor.model_loaded and predictor.load_error:
+        resp["load_error"] = predictor.load_error
+    return resp
