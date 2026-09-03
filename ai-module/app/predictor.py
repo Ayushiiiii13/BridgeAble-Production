@@ -124,6 +124,11 @@ class GesturePredictor:
             self.load_error = f"Custom model file not found at {model_file}"
             print(f"[BridgeAble AI] WARNING: {self.load_error}")
             return
+            
+        if model_file.suffix == ".task" or "task" in model_file.name:
+            self.load_error = f"Cannot load MediaPipe .task file ({model_file}) via Keras."
+            print(f"[BridgeAble AI] ERROR: {self.load_error}")
+            return
 
         try:
             self.custom_model = tf.keras.models.load_model(str(model_file))
