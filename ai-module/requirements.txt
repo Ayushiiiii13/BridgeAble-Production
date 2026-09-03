@@ -1,8 +1,14 @@
 fastapi==0.115.0
 uvicorn==0.30.6
-opencv-python-headless==4.10.0.84
+# Use headless contrib variant (no GUI/OpenGL deps) pinned to last version
+# compatible with numpy<2 on Python 3.11 (4.12+ require numpy>=2)
+opencv-contrib-python-headless==4.11.0.86
 mediapipe==0.10.35
+# numpy<2.0 required by TensorFlow 2.16.2 and ml_dtypes 0.3.x
+# Pinned hard to prevent pip from upgrading to 2.x which breaks ml_dtypes
 numpy==1.26.4
+# ml-dtypes 0.3.2 is the latest version in the 0.3.x series required by TF 2.16.2
+ml_dtypes==0.3.2
 python-multipart==0.0.9
 pydantic==2.9.1
 python-dotenv==1.0.1
