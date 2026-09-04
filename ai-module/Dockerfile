@@ -29,9 +29,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application source
 COPY . .
 
-# Render injects $PORT at runtime; default to 8000 for local dev
-ENV PORT=8000
+EXPOSE 8000
 
-EXPOSE $PORT
-
-CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
+# Use sh -c so $PORT is always expanded from Render's runtime environment
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
