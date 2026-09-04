@@ -1,0 +1,14 @@
+services:
+  # BridgeAble AI Module — FastAPI / MediaPipe gesture recognition service
+  - type: web
+    name: bridgeable-ai
+    runtime: python
+    rootDir: ai-module
+    buildCommand: bash build.sh
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MODEL_PATH
+        value: ./models/gesture_recognizer.task
+      - key: CONFIDENCE_THRESHOLD
+        value: "0.70"
+    autoDeploy: true
