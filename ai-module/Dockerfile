@@ -1,14 +1,12 @@
 # BridgeAble AI Module — Production Dockerfile
-# Uses python:3.11-slim and installs libGLESv2 system deps
-# required by MediaPipe GestureRecognizer on headless Linux.
+# Uses python:3.11-slim-bullseye (Debian 11) where libgles2-mesa and
+# libgl1-mesa-glx exist — these were removed/renamed in Debian Bookworm.
 
-FROM python:3.11-slim
+FROM python:3.11-slim-bullseye
 
-# Install system-level OpenGL ES + supporting libs needed by MediaPipe
+# Install system-level OpenGL ES + supporting libs required by MediaPipe
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgles2 \
     libgles2-mesa \
-    libgl1 \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libsm6 \
