@@ -1,12 +1,16 @@
 # BridgeAble AI Module — Production Dockerfile
-# Uses python:3.11-slim-bullseye (Debian 11) where libgles2-mesa and
-# libgl1-mesa-glx exist — these were removed/renamed in Debian Bookworm.
+# Uses python:3.11-slim-bullseye (Debian 11) where MediaPipe GL/EGL deps exist.
 
 FROM python:3.11-slim-bullseye
 
-# Install system-level OpenGL ES + supporting libs required by MediaPipe
+# Install all system-level libs required by MediaPipe GestureRecognizer:
+#   libgles2-mesa  → provides libGLESv2.so.2
+#   libegl1-mesa   → provides libEGL.so.1
+#   libgl1-mesa-glx → provides libGL.so.1
+#   libglib2.0-0, libsm6, libxext6, libxrender1, libgomp1 → OpenCV / TF deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgles2-mesa \
+    libegl1-mesa \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libsm6 \
@@ -25,7 +29,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application source
 COPY . .
 
-# Render injects $PORT at runtime; default to 8000 locally
+# Render injects $PORT at runtime; default to 8000 for local dev
 ENV PORT=8000
 
 EXPOSE $PORT
