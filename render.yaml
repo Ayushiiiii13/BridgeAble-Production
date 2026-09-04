@@ -1,11 +1,10 @@
 services:
-  # BridgeAble AI Module — FastAPI / MediaPipe gesture recognition service
+  # BridgeAble AI Module — Docker service (required for libGLESv2 / MediaPipe on Render)
   - type: web
     name: bridgeable-ai
-    runtime: python
+    runtime: docker
     rootDir: ai-module
-    buildCommand: bash build.sh
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: MODEL_PATH
         value: ./models/gesture_recognizer.task
